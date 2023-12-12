@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from api.models import Customer,Product,OrderItem
+from api.models import Customer,Product,OrderItem,Order
 from django.utils import timezone
 
 class CustomerSerializer(serializers.ModelSerializer):
