@@ -15,3 +15,13 @@ class Product(models.Model):
 
     def __str__(self):
         return self.name
+    
+class Order(models.Model):
+    order_number = models.CharField(max_length=10, unique=True)
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
+    order_date = models.DateField()
+    address = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.order_number
+    
