@@ -17,3 +17,7 @@ class ProductSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'name': {'validators': []},
         }
+    def validate_weight(self, value):
+        if value <= 0 or value > 25:
+            raise serializers.ValidationError("Weight must be a positive decimal and not more than 25kg.")
+        return value
