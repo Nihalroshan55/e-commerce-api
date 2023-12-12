@@ -29,7 +29,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
         
 
 class OrderSerializer(serializers.ModelSerializer):
-    order_items = OrderItemSerializer(many=True, read_only=True)
+    order_items = OrderItemSerializer(many=True)
 
     class Meta:
         model = Order
@@ -41,3 +41,13 @@ class OrderSerializer(serializers.ModelSerializer):
         if value < timezone.now().date():
             raise serializers.ValidationError("Order date cannot be in the past.")
         return value
+    
+    def validate(self, data):
+        order_items = data.get('order_items', [])
+
+        # Validate cumulative weight of order items
+        total_weight = sum(item['product'].weight * item['quantity'] for item in order_items)
+        if total_weight > 150:
+            raise serializers.ValidationError("Order cumulative weight must be under 150kg.")
+
+        return data
