@@ -46,7 +46,7 @@ class OrderSerializer(serializers.ModelSerializer):
         order_items_data = data.get('order_item', [])
 
         # Validate cumulative weight of order items
-        total_weight = sum(item['product'].weight * item['quantity'] for item in order_items_data)
+        total_weight = sum(item['product'].weight * item['quantity'] for item in order_items_data) # calculating total wait of the order_item 
         if total_weight > 150:
             raise serializers.ValidationError("Order cumulative weight must be under 150kg.")
 
