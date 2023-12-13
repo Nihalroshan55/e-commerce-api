@@ -1,4 +1,4 @@
-from rest_framework import serializers
+from rest_framework import serializers,validators
 from api.models import Customer,Product,OrderItem,Order
 from django.utils import timezone
 
@@ -6,17 +6,22 @@ class CustomerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Customer
         fields = ['id', 'name', 'contact_number', 'email']
-        extra_kwargs = {
-            'name': {'validators': []},
-        }
-
+        
+    def validate_name(self, value):
+        if Customer.objects.filter(name__iexact=value).exists():
+            raise serializers.ValidationError("Customer with this name already exists.")
+        return value
+    
 class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = ['id', 'name', 'weight']
-        extra_kwargs = {
-            'name': {'validators': []},
-        }
+    
+    def validate_name(self, value):
+        if Product.objects.filter(name__iexact=value).exists():
+            raise serializers.ValidationError("Product with this name already exists.")
+        return value
+
     def validate_weight(self, value):
         if value <= 0 or value > 25:
             raise serializers.ValidationError("Weight must be a positive decimal and not more than 25kg.")
