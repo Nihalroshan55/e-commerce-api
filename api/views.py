@@ -1,8 +1,8 @@
 # from django.shortcuts import render
-from rest_framework import viewsets
+from rest_framework import viewsets,filters
 from api.models import Customer,Product,Order
 from api.serializer import CustomerSerializer,ProductSerializer,OrderSerializer
-
+from django.db.models import Q
 # Create your views here.
 
 class CustomerViewSet(viewsets.ModelViewSet):
@@ -31,3 +31,18 @@ class OrderViewSet(viewsets.ModelViewSet):
             new_order_number = 1
 
         return f'ORD{new_order_number:05d}'
+    
+    def get_queryset(self):
+        queryset = Order.objects.all().select_related('customer').prefetch_related('order_item__product')
+
+        products = self.request.query_params.get('products', None)
+        customer_name = self.request.query_params.get('customer', None)
+
+        if products:
+            products_list = products.split(',')
+            queryset = queryset.filter(order_item__product__name__in=products_list).distinct()
+
+        if customer_name:
+            queryset = queryset.filter(customer__name=customer_name)
+
+        return queryset
