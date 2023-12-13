@@ -3,6 +3,7 @@ from rest_framework import viewsets,filters
 from api.models import Customer,Product,Order
 from api.serializer import CustomerSerializer,ProductSerializer,OrderSerializer
 from django.db.models import Q
+
 # Create your views here.
 
 class CustomerViewSet(viewsets.ModelViewSet):
@@ -46,3 +47,4 @@ class OrderViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(customer__name=customer_name)
 
         return queryset
+
