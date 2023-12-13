@@ -25,15 +25,15 @@ class ProductSerializer(serializers.ModelSerializer):
 class OrderItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderItem
-        fields = ['id', 'order', 'product', 'quantity']
+        fields = ['id','product', 'quantity']
         
 
 class OrderSerializer(serializers.ModelSerializer):
-    order_items = OrderItemSerializer(many=True)
+    order_item= OrderItemSerializer(many=True)
 
     class Meta:
         model = Order
-        fields = ['id', 'order_number', 'customer', 'order_date', 'address', 'order_items']
+        fields = ['id', 'order_number', 'customer', 'order_date', 'address', 'order_item']
         extra_kwargs = {
             'order_number': {'read_only': True},
         }
@@ -43,11 +43,34 @@ class OrderSerializer(serializers.ModelSerializer):
         return value
     
     def validate(self, data):
-        order_items = data.get('order_items', [])
+        order_items_data = data.get('order_item', [])
 
         # Validate cumulative weight of order items
-        total_weight = sum(item['product'].weight * item['quantity'] for item in order_items)
+        total_weight = sum(item['product'].weight * item['quantity'] for item in order_items_data)
         if total_weight > 150:
             raise serializers.ValidationError("Order cumulative weight must be under 150kg.")
 
         return data
+    
+    def create(self, validated_data):
+        order_items_data = validated_data.pop('order_item', [])
+        order = Order.objects.create(**validated_data)
+        
+        order_items = order_items_data 
+        for order_item_data in order_items:
+            OrderItem.objects.create(order=order, **order_item_data)
+
+        return order
+    
+    def update(self, instance, validated_data):
+        order_item_data = validated_data.pop('order_item', [])  
+
+        instance.customer = validated_data.get('customer', instance.customer)
+        instance.order_date = validated_data.get('order_date', instance.order_date)
+        instance.address = validated_data.get('address', instance.address)
+        instance.save()
+        instance.order_item.all().delete()
+        for order_item_data in order_item_data:
+            OrderItem.objects.create(order=instance,**order_item_data)
+
+        return instance
